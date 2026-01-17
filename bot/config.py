@@ -1,10 +1,5 @@
-import os
-from dotenv import load_dotenv
+import streamlit as st
 
-load_dotenv()
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-# Kelajakda Firebase yoki boshqa sozlamalar ham shu yerga qo'shiladi
-
+# Streamlit Secrets'dan o'qiymiz
+BOT_TOKEN = st.secrets["BOT_TOKEN"]
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
