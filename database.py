@@ -30,8 +30,7 @@ def update_stats():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("SELECT usage_count FROM stats WHERE date = ?", (today,))
-    result = c.fetchone()
-    if result:
+    if c.fetchone():
         c.execute("UPDATE stats SET usage_count = usage_count + 1 WHERE date = ?", (today,))
     else:
         c.execute("INSERT INTO stats VALUES (?, 1)", (today,))
@@ -55,7 +54,9 @@ def get_stats():
 def get_all_users():
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("SELECT user_id, username, fullname, join_date FROM users")
-    users = c.fetchall()
+    c.execute("SELECT user_id FROM users")
+    users = [row[0] for row in c.fetchall()]
     conn.close()
     return users
+    return users
+
