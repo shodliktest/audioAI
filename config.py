@@ -13,6 +13,14 @@ DB_FILE = "bot_database.db"
 # --- KENGAYTIRILGAN OVOZLAR BAZASI ---
 # Har bir til uchun bir nechta variantlar
 VOICES = {
+   "multi": {
+        "label": "🌐 Ko'p tilli (Mix)",
+        "voices": {
+            "female_1": {"id": "en-US-AvaMultilingualNeural", "name": "Ava (Ayol - Ko'p tilli)", "gender": "Ayol"},
+            "male_1": {"id": "en-US-AndrewMultilingualNeural", "name": "Andrew (Erkak - Ko'p tilli)", "gender": "Erkak"},
+        },
+        "test_text": "Assalomu alaykum! My name is Andrew. I can read both Uzbek and English perfectly."
+    },
     "uz": {
         "label": "🇺🇿 O'zbekcha",
         "voices": {
@@ -42,3 +50,4 @@ VOICES = {
     }
     # Boshqa tillarni ham shu formatda qo'shishingiz mumkin
 }
+
