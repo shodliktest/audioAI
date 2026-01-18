@@ -10,14 +10,22 @@ def main_menu(user_id):
         kb.append([KeyboardButton(text="🔐 Admin Panel")])
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
+def admin_menu():
+    kb = [
+        [KeyboardButton(text="📊 Statistika"), KeyboardButton(text="📢 Xabar yuborish")],
+        [KeyboardButton(text="🔙 Bosh menyu")]
+    ]
+    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+
 def lang_inline_kb(mode="translate"):
     kb = []
-    # Rejim tugmasi eng tepada
+    # Rejimni almashtirish tugmasi
     if mode == "translate":
         kb.append([InlineKeyboardButton(text="📄 Tarjimasiz (Asl holatda) o'qish ➡️", callback_data="set_mode_original")])
     else:
         kb.append([InlineKeyboardButton(text="🌍 Tarjima rejimiga o'tish ➡️", callback_data="set_mode_translate")])
     
+    # Tillar ro'yxati
     row = []
     for code, info in VOICES.items():
         row.append(InlineKeyboardButton(text=info['label'], callback_data=f"lang_{code}"))
@@ -35,7 +43,7 @@ def voices_inline_kb(lang_code):
     for v_key, v_val in voices.items():
         kb.append([InlineKeyboardButton(text=f"{v_val['name']}", callback_data=f"voice_{lang_code}_{v_key}")])
     
-    # Sinov rejimi oxirida
+    # Sinov va Ortga tugmalari
     kb.append([InlineKeyboardButton(text="🔊 SINOV REJIMI", callback_data=f"test_{lang_code}")])
     kb.append([InlineKeyboardButton(text="🔙 Ortga", callback_data="back_to_lang")])
     return InlineKeyboardMarkup(inline_keyboard=kb)
