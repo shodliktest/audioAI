@@ -5,7 +5,7 @@ from aiogram import Router, types, F, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import FSInputFile
+from aiogram.types import FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 
 from config import ADMIN_ID, VOICES
 from database import add_user, update_stats, get_stats, get_all_users
@@ -17,13 +17,18 @@ router = Router()
 class BotStates(StatesGroup):
     waiting_for_broadcast = State()
 
+# --- START VA ASOSIY MENYU ---
 @router.message(Command("start"))
 async def start_handler(message: types.Message):
     user = message.from_user
     add_user(user.id, user.username, user.full_name)
-    await message.answer(f"Assalomu alaykum, {user.full_name}!", reply_markup=main_menu(user.id))
+    await message.answer(
+        f"Assalomu alaykum, <b>{user.full_name}</b>!\nMatn yuboring yoki fayl yuklang.",
+        parse_mode="HTML",
+        reply_markup=main_menu(user.id)
+    )
 
-# --- ADMIN PANEL ---
+# --- ADMIN PANEL VA BROADCAST ---
 @router.message(F.text == "🔐 Admin Panel")
 async def admin_panel(message: types.Message):
     if message.from_user.id == ADMIN_ID:
@@ -55,7 +60,7 @@ async def perform_broadcast(message: types.Message, state: FSMContext, bot: Bot)
     await message.answer(f"✅ Tugadi. {count} ta foydalanuvchiga yetkazildi.")
     await state.clear()
 
-# --- TTS JARAYONI ---
+# --- MATNNI QABUL QILISH ---
 @router.message(F.content_type.in_({'text', 'document'}))
 async def content_handler(message: types.Message, state: FSMContext, bot: Bot):
     if message.text in ["🔐 Admin Panel", "📊 Statistika", "📢 Xabar yuborish", "🔙 Bosh menyu"]: return
@@ -84,6 +89,7 @@ async def content_handler(message: types.Message, state: FSMContext, bot: Bot):
     await state.update_data(text=text)
     await msg.edit_text("🌍 Tilni tanlang:", reply_markup=lang_inline_kb())
 
+# --- CALLBACKLAR (TIL VA OVOZ) ---
 @router.callback_query(F.data.startswith("lang_"))
 async def lang_choice(call: types.CallbackQuery, state: FSMContext):
     lang = call.data.split("_")[1]
@@ -92,21 +98,67 @@ async def lang_choice(call: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("voice_"))
 async def voice_choice(call: types.CallbackQuery, state: FSMContext, bot: Bot):
-    parts = call.data.split("_")
-    voice_id = VOICES[parts[1]]['voices'][parts[2]]['id']
+    # MUHIM: split("_", 2) female_1 kabi kalitlarni buzmaydi
+    parts = call.data.split("_", 2)
+    lang_code = parts[1]
+    voice_key = parts[2]
+    
+    voice_info = VOICES[lang_code]['voices'][voice_key]
     data = await state.get_data()
-    await call.message.edit_text("🔄 Tayyorlanmoqda...")
+    original_text = data.get("text", "")
     
-    translated = await translate_text(data['text'], parts[1])
+    await call.message.edit_text(f"🔄 <b>{voice_info['name']}</b> ovozida tarjima qilinmoqda...", parse_mode="HTML")
+    
+    translated = await translate_text(original_text, lang_code)
     output = f"audio_{call.from_user.id}.mp3"
-    await generate_audio(translated, voice_id, output)
-    
-    await bot.send_audio(call.message.chat.id, FSInputFile(output), caption="✅ Tayyor!")
-    update_stats()
-    if os.path.exists(output): os.remove(output)
-    await call.message.delete()
+    await process_and_send_audio(call, translated, voice_info, output, bot)
     await state.clear()
+
+@router.callback_query(F.data.startswith("orig_"))
+async def original_voice_choice(call: types.CallbackQuery, state: FSMContext, bot: Bot):
+    lang_code = call.data.split("_")[1]
+    # O'sha tilning birinchi ovozini default sifatida olamiz
+    voice_key = list(VOICES[lang_code]['voices'].keys())[0]
+    voice_info = VOICES[lang_code]['voices'][voice_key]
+    
+    data = await state.get_data()
+    original_text = data.get("text", "")
+    
+    await call.message.edit_text(f"🔄 Tarjimasiz (asl holatda) yozilmoqda...", parse_mode="HTML")
+    
+    output = f"audio_{call.from_user.id}.mp3"
+    await process_and_send_audio(call, original_text, voice_info, output, bot)
+    await state.clear()
+
+@router.callback_query(F.data.startswith("test_"))
+async def test_voices(call: types.CallbackQuery, bot: Bot):
+    lang_code = call.data.split("_")[1]
+    test_text = VOICES[lang_code]['test_text']
+    await call.answer("Sinov audio yuborilmoqda...")
+    
+    for v_key, v_val in VOICES[lang_code]['voices'].items():
+        output = f"test_{v_key}.mp3"
+        await generate_audio(test_text, v_val['id'], output)
+        await bot.send_audio(call.message.chat.id, FSInputFile(output), caption=f"🎙 {v_val['name']}")
+        if os.path.exists(output): os.remove(output)
+
+# --- YORDAMCHI FUNKSIYA ---
+async def process_and_send_audio(call, text, voice_info, output, bot):
+    try:
+        await generate_audio(text, voice_info['id'], output)
+        await bot.send_audio(
+            call.message.chat.id, 
+            FSInputFile(output), 
+            caption=f"✅ Tayyor!\n🎙 Ovoz: {voice_info['name']}",
+            parse_mode="HTML"
+        )
+        update_stats()
+    except Exception as e:
+        await call.message.answer(f"❌ Xatolik: {str(e)}")
+    finally:
+        if os.path.exists(output): os.remove(output)
+        await call.message.delete()
 
 @router.message(F.text == "🔙 Bosh menyu")
 async def back(message: types.Message):
-    await message.answer("Bosh menyu", reply_markup=main_menu(message.from_user.id))
+    await message.answer("Asosiy menyu", reply_markup=main_menu(message.from_user.id))
