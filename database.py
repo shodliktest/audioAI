@@ -32,16 +32,21 @@ def get_all_users():
     users = [row[0] for row in c.fetchall()]
     conn.close()
     return users
-
 def update_stats():
     today = str(date.today())
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
+    # 1. Bugungi sanaga tegishli qator borligini tekshirish
     c.execute("SELECT usage_count FROM stats WHERE date = ?", (today,))
-    if c.fetchone():
+    result = c.fetchone()
+    
+    if result:
+        # 2. Agar bo'lsa, sonini 1 taga oshirish (so'rov oxirida (today,) bo'lishi shart)
         c.execute("UPDATE stats SET usage_count = usage_count + 1 WHERE date = ?", (today,))
     else:
-        c.execute("INSERT INTO stats VALUES (?, 1)")
+        # 3. Agar bo'lmasa, yangi qator qo'shish (bu yerda ham (today,) bo'lishi shart)
+        c.execute("INSERT INTO stats VALUES (?, 1)", (today,))
+        
     conn.commit()
     conn.close()
 
@@ -58,3 +63,4 @@ def get_stats():
     total_usage = c.fetchone()[0]
     conn.close()
     return total_users, today_usage, (total_usage if total_usage else 0)
+
