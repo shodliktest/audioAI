@@ -1,0 +1,8 @@
+aiogram==3.10.0
+streamlit
+edge-tts
+deep-translator
+PyPDF2
+python-docx
+asyncio
+aiofiles
