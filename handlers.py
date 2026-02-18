@@ -212,7 +212,36 @@ async def back_to_lang(call: types.CallbackQuery):
 @router.message(F.text == "🔙 Bosh menyu")
 async def back_to_main(message: types.Message):
     await message.answer("Asosiy menyu", reply_markup=main_menu(message.from_user.id))
-    
+ # handlers.py fayliga quyidagi yordamchi funksiya va yangi handlerlarni qo'shing:
+
+# 1. Uzun matnni bo'laklash funksiyasi (faylning tepasiga qo'shing)
+def split_message(text, max_length=4000):
+    return [text[i:i + max_length] for i in range(0, len(text), max_length)]
+
+# 2. Ovoz tanlangandan keyingi jarayonni yangilash (voice_choice funksiyasi ichida)
+# Caption (imzo) qismini o'zgartiring va uzun matnni yuborish qismini qo'shing:
+
+# ... (voice_choice funksiyasi ichidagi tarjima qismidan keyin)
+        await call.message.edit_text(f"📤 Yuklanmoqda...\n{get_p_bar(95)}", parse_mode="HTML")
+        
+        # Ovoz faylini yuborish
+        voice_name = VOICES[lang_code if lang_code!='multi' else 'uz']['voices'][voice_key]['name']
+        caption = (f"✅ <b>Audio Tayyor!</b>\n"
+                   f"🎙 Ovoz: {voice_name}\n"
+                   f"⚙️ Rejim: {rejim_label}")
+        
+        await bot.send_audio(call.message.chat.id, FSInputFile(output_final), caption=caption, parse_mode="HTML")
+
+        # AGAR TARJIMA UZUN BO'LSA, UNI BO'LIB YUBORISH
+        if lang_code != "multi":
+            msg_chunks = split_message(f"📝 <b>To'liq matn (Tarjima):</b>\n\n{final_text}")
+            for i, chunk in enumerate(msg_chunks):
+                await bot.send_message(call.message.chat.id, chunk, parse_mode="HTML")
+                await asyncio.sleep(0.5) # Telegram bloklamasligi uchun
+
+        update_stats()
+# ...
+
 # handlers.py ning eng oxiriga qo'shing:
 
 @router.message()
@@ -238,3 +267,4 @@ async def echo_all(message: types.Message):
     
     await message.answer(guide_text, parse_mode="HTML", reply_markup=main_menu(message.from_user.id))
     
+
