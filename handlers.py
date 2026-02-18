@@ -213,3 +213,28 @@ async def back_to_lang(call: types.CallbackQuery):
 async def back_to_main(message: types.Message):
     await message.answer("Asosiy menyu", reply_markup=main_menu(message.from_user.id))
     
+# handlers.py ning eng oxiriga qo'shing:
+
+@router.message()
+async def echo_all(message: types.Message):
+    """Barcha tushunarsiz xabarlarga javob beruvchi yo'riqnoma"""
+    
+    guide_text = (
+        "❓ <b>Botdan qanday foydalanish kerak?</b>\n\n"
+        "Siz botga matn yuborib, uni professional darajadagi audyoga aylantirishingiz mumkin. "
+        "Bot hozirda 7 xil tilda ishlaydi.\n\n"
+        "🛠 <b>Imkoniyatlar:</b>\n"
+        "1️⃣ <b>Matn yuborish:</b> Shunchaki xabar yozing, bot uni tarjima qiladi va o'qib beradi.\n"
+        "2️⃣ <b>Fayl yuborish:</b> PDF, DOCX yoki TXT fayllarni yuboring, bot ichidagi matnlarni chiqarib oladi.\n"
+        "3️⃣ <b>Smart Mix (🌐):</b> Agar matningiz ichida tarjimasi bo'lsa, masalan: <i>Hello (Salom)</i>, "
+        "bot qavs ichidagini o'zbekcha, tashqaridagisini inglizcha o'qiydi.\n\n"
+        "📝 <b>Amallar tartibi:</b>\n"
+        "1. Matn yoki faylni yuboring.\n"
+        "2. Kerakli tilni tanlang (masalan: English).\n"
+        "3. Ovoz turini tanlang (Erkak yoki Ayol).\n"
+        "4. Tayyor audio va matnli tarjimani qabul qilib oling.\n\n"
+        "⚠️ <b>Eslatma:</b> Iltimos, menyudagi tugmalardan foydalaning yoki matn yuboring!"
+    )
+    
+    await message.answer(guide_text, parse_mode="HTML", reply_markup=main_menu(message.from_user.id))
+    
