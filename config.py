@@ -24,14 +24,17 @@ VOICES = {
         },
         "test_text": "Bu o'zbek tili uchun sinov audiosi."
     },
-    "en": {
+        "en": {
         "label": "🇺🇸 English",
         "voices": {
-            "female_1": {"id": "en-US-AriaNeural", "name": "Aria", "gender": "Ayol"},
-            "male_1": {"id": "en-US-ChristopherNeural", "name": "Christopher", "gender": "Erkak"},
+            "female_1": {"id": "en-US-AvaNeural", "name": "Ava (Premium)", "gender": "Ayol"},
+            "male_1": {"id": "en-US-AndrewNeural", "name": "Andrew (Premium)", "gender": "Erkak"},
+            "female_2": {"id": "en-GB-SoniaNeural", "name": "Sonia (British)", "gender": "Ayol"},
+            "male_2": {"id": "en-GB-RyanNeural", "name": "Ryan (British)", "gender": "Erkak"},
         },
-        "test_text": "This is a test audio for English."
+        "test_text": "This is a high-quality neural voice for English."
     },
+
     "tr": {
         "label": "🇹🇷 Turkcha",
         "voices": {
@@ -65,3 +68,4 @@ VOICES = {
         "test_text": "Это тестовое аудио для русского языка."
     }
 }
+
