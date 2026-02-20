@@ -94,13 +94,18 @@ async def handle_input(message: types.Message, state: FSMContext):
 
 # --- Tarjima va Ovoz Berish Jarayoni ---
 
-@router.callback_query(F.data.startswith("voice_"))
+@@router.callback_query(F.data.startswith("voice_"))
 async def process_voice(call: types.CallbackQuery, state: FSMContext, bot: Bot):
+    # data ni to'g'ri ajratib olish (voice_uz_female_1 -> ["voice", "uz", "female", "1"])
     data = call.data.split("_")
     lang_code = data[1]
-    voice_key = data[2]
+    
+    # voice_key ni qayta tiklash (female + _ + 1)
+    voice_key = f"{data[2]}_{data[3]}" 
     
     user_data = await state.get_data()
+    # ... qolgan kod o'zgarishsiz qoladi
+
     original_text = user_data.get("original_text")
     output_final = f"result_{call.from_user.id}.mp3"
     
@@ -175,3 +180,4 @@ async def lang_choice(call: types.CallbackQuery):
     lang_code = call.data.split("_")[1]
     await call.message.edit_text(f"🎙 {VOICES[lang_code]['label']} tili uchun ovozni tanlang:", reply_markup=voices_inline_kb(lang_code))
     
+
